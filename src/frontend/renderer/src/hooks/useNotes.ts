@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, use } from 'react'
 import type { FolderEntry } from '@/types/global'
 
 const api = window.smartNotes
@@ -22,13 +22,22 @@ export function useNotes(): UseNotesReturn {
   const [tree, setTree] = useState<FolderEntry[]>([])
   const [activeNote, setActiveNote] = useState<string | null>(null)
   const [status, setStatus] = useState('')
+  const mountedRef = useRef(true)
 
   const activeRef = useRef(activeNote)
   activeRef.current = activeNote
 
   const flash = useCallback((msg: string, ms = 1200) => {
     setStatus(msg)
-    setTimeout(() => setStatus(''), ms)
+    setTimeout(() => {
+        if (mountedRef.current) setStatus('')
+    })
+  }, [])
+
+  useEffect(() => {
+    return () => {
+        mountedRef.current = false
+    }
   }, [])
 
   const refreshTree = useCallback(async () => {
@@ -99,13 +108,23 @@ export function useNotes(): UseNotesReturn {
   }, [refreshTree, flash])
 
   const readNoteContent = useCallback(async (name: string) => {
-    const { content } = await api.readNote(name)
-    return content
-  }, [])
+    try {
+      const { content } = await api.readNote(name)
+      return content
+    } catch (err) {
+      flash(`Failed to read "${name}"`)
+      throw err
+    }
+  }, [flash])
 
   const writeNoteContent = useCallback(async (name: string, content: string) => {
-    await api.writeNote(name, content)
-  }, [])
+    try {
+      await api.writeNote(name, content)
+    } catch (err) {
+      flash(`Failed to save "${name}"`)
+      throw err
+    }
+  }, [flash])
 
   // Boot
   useEffect(() => {

@@ -8,19 +8,20 @@ import { useMarkdownEditor } from '@/hooks/useMarkdownEditor'
 export default function App() {
   const notes = useNotes()
   const [saveStatus, setSaveStatus] = useState('')
+  const {activeNote, writeNoteContent} = notes
 
   const handleSave = useCallback(
     async (md: string) => {
-      if (!notes.activeNote) return
+      if (!activeNote) return
       try {
-        await notes.writeNoteContent(notes.activeNote, md)
+        await writeNoteContent(activeNote, md)
         setSaveStatus('Saved')
         setTimeout(() => setSaveStatus(''), 800)
-      } catch {
+      } catch (err) {
         setSaveStatus('Save failed')
       }
     },
-    [notes],
+    [activeNote, writeNoteContent],
   )
 
   const { editor, setContent } = useMarkdownEditor({ onSave: handleSave })
@@ -32,6 +33,8 @@ export default function App() {
       return
     }
     notes.readNoteContent(notes.activeNote).then(setContent).catch(() => setSaveStatus('Load failed'))
+    // Re-run only when the selected note changes; omitting notes.readNoteContent
+    // and setContent avoids spurious reloads since those references change on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notes.activeNote])
 

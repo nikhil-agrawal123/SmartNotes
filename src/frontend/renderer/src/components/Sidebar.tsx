@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import { ChevronRight, ChevronDown, Folder, FileText, Trash2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { FolderEntry } from '@/types/global'
 
 // ── Single tree node ──────────────────────────────────────────────────────
@@ -22,6 +23,7 @@ function TreeNode({ entry, path, depth, activeNote, onSelect, onDelete }: TreeNo
     return (
       <div>
         <button
+        type='button'
           onClick={() => setOpen((v) => !v)}
           className={`flex w-full items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm transition-colors
             hover:bg-surface-200/60 text-text-secondary hover:text-text-primary`}
@@ -40,7 +42,7 @@ function TreeNode({ entry, path, depth, activeNote, onSelect, onDelete }: TreeNo
           <div>
             {entry.children.map((child) => (
               <TreeNode
-                key={child.name}
+                key={`${entry.name}/${child.name}`}
                 entry={child}
                 path={fullPath}
                 depth={depth + 1}
@@ -104,25 +106,27 @@ export default function Sidebar({
   onChooseFolder,
   onDelete,
 }: SidebarProps) {
+  const { t } = useTranslation()
+
   return (
     <aside className="flex flex-col h-full w-[260px] min-w-[220px] border-r border-border bg-surface select-none">
       {/* Header */}
       <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-        <div className="font-semibold text-sm text-neon-cyan tracking-wide">SmartNotes</div>
+        <div className="font-semibold text-sm text-neon-cyan tracking-wide">{t('sidebar.title')}</div>
       </div>
 
       {/* Actions */}
       <div className="flex gap-1.5 px-3 pb-2">
-        <SidebarBtn label="New Note" onClick={onNewNote} />
-        <SidebarBtn label="New Folder" onClick={onNewFolder} />
-        <SidebarBtn label="Open" onClick={onChooseFolder} />
+        <SidebarBtn label={t('sidebar.newNote')} onClick={onNewNote} />
+        <SidebarBtn label={t('sidebar.newFolder')} onClick={onNewFolder} />
+        <SidebarBtn label={t('sidebar.open')} onClick={onChooseFolder} />
       </div>
 
       {/* Tree */}
       <div className="flex-1 overflow-y-auto px-1.5 pb-3 scrollbar-thin">
         {tree.length === 0 ? (
           <div className="px-3 py-6 text-center text-xs text-text-muted">
-            No notes yet — create one to get started.
+            {t('sidebar.emptyState')}
           </div>
         ) : (
           tree.map((entry) => (

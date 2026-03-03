@@ -1,0 +1,13 @@
+{
+  "sidebar": {
+    "title": "SmartNotes",
+    "newNote": "New Note",
+    "newFolder": "New Folder",
+    "open": "Open",
+    "emptyState": "No notes yet — create one to get started."
+  },
+  "noteEditor": {
+    "placeholderEmoji": "📝",
+    "placeholderText": "Select or create a note to start writing"
+  }
+}

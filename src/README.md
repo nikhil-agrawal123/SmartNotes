@@ -35,7 +35,7 @@ Every decision in `src/` follows these rules:
 
 ## Current source layout
 
-```
+```text
 src/
 ├── backend/                          # (empty — RAG pipeline will land here)
 │
@@ -81,7 +81,7 @@ src/
 
 ### High-level data flow
 
-```
+```text
 ┌─────────────────────────── Electron ───────────────────────────────┐
 │                                                                     │
 │  Main process                          Renderer process             │
@@ -159,7 +159,7 @@ The RAG backend exists as a separate codebase today and will be integrated into 
 
 ### Backend directory structure (current)
 
-```
+```text
 app/
 ├── api/                # FastAPI route definitions + dependency injection
 ├── core/               # Config loader, environment variable management
@@ -194,7 +194,7 @@ The RAG system processes data through six conceptual stages, each independently 
 
 ### Stage 1 — Ingest
 
-```
+```text
 Documents (PDF, future: MD, HTML) → Text extraction → Normalization
 ```
 
@@ -204,7 +204,7 @@ Documents (PDF, future: MD, HTML) → Text extraction → Normalization
 
 ### Stage 2 — Chunk + metadata
 
-```
+```text
 Raw text → Overlapping chunks → Metadata-enriched chunks
 ```
 
@@ -214,7 +214,7 @@ Raw text → Overlapping chunks → Metadata-enriched chunks
 
 ### Stage 3 — Domain classification
 
-```
+```text
 Chunk → Local LLM (Qwen2.5) → Domain label
 ```
 
@@ -224,7 +224,7 @@ Chunk → Local LLM (Qwen2.5) → Domain label
 
 ### Stage 4 — Entity & relation extraction
 
-```
+```text
 Chunk → SpaCy en_core_web_trf → Named entities + (subject, predicate, object) triples
 ```
 
@@ -235,7 +235,7 @@ Chunk → SpaCy en_core_web_trf → Named entities + (subject, predicate, object
 
 ### Stage 5 — Embed + store
 
-```
+```text
 Chunk → Ollama qwen3-embedding:8b → 4096-dim vector → ChromaDB
 ```
 
@@ -246,7 +246,7 @@ Chunk → Ollama qwen3-embedding:8b → 4096-dim vector → ChromaDB
 
 ### Stage 6 — Retrieve + generate + explain
 
-```
+```text
 Query → Decompose → Hybrid retrieve → Evidence graph → LLM generate → Trust score
 ```
 
@@ -259,7 +259,7 @@ Query → Decompose → Hybrid retrieve → Evidence graph → LLM generate → 
 
 ### Explainability — what the user sees
 
-```
+```text
 ┌────────────────────────────────────────────────────────┐
 │  Answer                                                 │
 │  "Einstein published General Relativity in 1915..."     │
@@ -281,7 +281,7 @@ How the RAG backend integrates with the Electron desktop app:
 
 ### Option A — Embedded local process (preferred for v1)
 
-```
+```text
 Electron main.cjs
   └── spawns backend as child process (Python/uvicorn)
         └── listens on localhost:random_port

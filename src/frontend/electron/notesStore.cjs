@@ -46,7 +46,7 @@ async function listMarkdownFiles(notesDir) {
 
 // ── Recursive file tree ───────────────────────────────────────────────────
 
-async function getFileTree(dirPath) {
+async function getFileTree(dirPath, depth = 0, maxDepth = 10) {
   await ensureDir(dirPath)
   const entries = await fs.readdir(dirPath, { withFileTypes: true })
   const tree = []
@@ -57,7 +57,7 @@ async function getFileTree(dirPath) {
     const fullPath = path.join(dirPath, entry.name)
 
     if (entry.isDirectory()) {
-      const children = await getFileTree(fullPath)
+      const children = await getFileTree(fullPath, depth + 1, maxDepth)
       tree.push({ name: entry.name, type: 'folder', children })
     } else if (entry.name.toLowerCase().endsWith('.md')) {
       const stat = await fs.stat(fullPath)
@@ -86,8 +86,13 @@ async function writeFileAtomic(targetPath, content) {
   const dir = path.dirname(targetPath)
   await ensureDir(dir)
   const tmp = path.join(dir, `.${path.basename(targetPath)}.${Date.now()}.tmp`)
-  await fs.writeFile(tmp, content, 'utf8')
-  await fs.rename(tmp, targetPath)
+  try{
+    await fs.writeFile(tmp, content, 'utf8')
+    await fs.rename(tmp, targetPath)
+  } catch (err) {
+    await fs.unlink(tmp).catch(() => {}) 
+    throw err
+  }
 }
 
 async function writeMarkdownFile(notesDir, name, content) {
@@ -115,6 +120,9 @@ async function createFolder(notesDir, folderName) {
 }
 
 async function deleteNote(notesDir, name) {
+  if(!name.toLowerCase().endsWith('.md')) {
+    throw new Error('Invalid note name')
+  } 
   const fullPath = safeJoin(notesDir, name)
   await fs.unlink(fullPath)
   return { ok: true }

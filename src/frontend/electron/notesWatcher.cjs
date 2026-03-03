@@ -21,9 +21,9 @@ function createNotesWatcher(notesDir, onChange) {
   watcher.on('add', emit)
   watcher.on('change', emit)
   watcher.on('unlink', emit)
-  watcher.on('addDir', emit)
-  watcher.on('unlinkDir', emit)
-  watcher.on('error', () => {})
+  watcher.on('error', (err) => {
+    console.error('Watcher error:', err)
+  })
 
   return {
     close: async () => {

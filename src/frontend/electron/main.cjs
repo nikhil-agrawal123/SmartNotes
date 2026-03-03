@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog, ipcMain } = require('electron')
+const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron')
 const path = require('node:path')
 const fs = require('node:fs/promises')
 
@@ -120,15 +120,27 @@ function setupIpc() {
   })
 
   ipcMain.handle('notes:read', async (_event, { name }) => {
-    await loadNotesDir()
-    const content = await readMarkdownFile(notesDir, name)
-    return { name, content }
+    try{
+
+        await loadNotesDir()
+        const content = await readMarkdownFile(notesDir, name)
+        return { name, content }
+    } catch (err) {
+        console.error('Error reading note:', err)
+        throw err
+    }
   })
 
   ipcMain.handle('notes:write', async (_event, { name, content }) => {
-    await loadNotesDir()
-    await writeMarkdownFile(notesDir, name, content)
-    return { ok: true }
+    try{
+            
+        await loadNotesDir()
+        await writeMarkdownFile(notesDir, name, content)
+        return { ok: true }
+    } catch (err) {
+        console.error('Error writing note:', err)
+        throw err
+    }
   })
 
   ipcMain.handle('notes:create', async (_event, { folder } = {}) => {
@@ -157,7 +169,10 @@ function setupIpc() {
     try {
       // Best-effort: ensure folder exists before revealing.
       await fs.mkdir(notesDir, { recursive: true })
-    } catch {}
+      shell.openPath(notesDir)
+    } catch (err) {
+      console.error('Failed to reveal notes directory:', err)
+    }
   })
 }
 

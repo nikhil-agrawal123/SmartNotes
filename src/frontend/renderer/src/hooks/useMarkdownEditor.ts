@@ -1,7 +1,8 @@
-import { useRef, useCallback } from 'react'
+import { useRef, useCallback, useEffect, use } from 'react'
 import { useEditor as useTipTapEditor, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { Markdown } from 'tiptap-markdown'
+
 
 interface UseEditorOptions {
   onSave: (markdown: string) => void
@@ -10,6 +11,12 @@ interface UseEditorOptions {
 export function useMarkdownEditor({ onSave }: UseEditorOptions) {
   const ignoreRef = useRef(false)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current)
+    }
+  }, [])
 
   const editor = useTipTapEditor({
     extensions: [

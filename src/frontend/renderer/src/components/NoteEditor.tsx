@@ -1,5 +1,6 @@
 import React from 'react'
 import { EditorContent, type Editor } from '@tiptap/react'
+import { useTranslation } from 'react-i18next'
 
 interface NoteEditorProps {
   editor: Editor | null
@@ -8,12 +9,14 @@ interface NoteEditorProps {
 }
 
 export default function NoteEditor({ editor, activeNote, status }: NoteEditorProps) {
+  const { t } = useTranslation()
+
   if (!activeNote) {
     return (
       <div className="flex flex-1 items-center justify-center text-text-muted text-sm select-none">
         <div className="text-center space-y-2">
-          <div className="text-3xl">📝</div>
-          <div>Select or create a note to start writing</div>
+          <div className="text-3xl">{t('noteEditor.placeholderEmoji', '📝')}</div>
+          <div>{t('noteEditor.placeholderText', 'Select or create a note to start writing')}</div>
         </div>
       </div>
     )
