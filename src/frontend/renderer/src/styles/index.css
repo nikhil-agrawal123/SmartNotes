@@ -1,0 +1,157 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base resets ───────────────────────────────────────────────────────── */
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ── Custom scrollbar ──────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e1e30;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2a2a44;
+}
+
+/* ── TipTap / ProseMirror overrides ────────────────────────────────────── */
+
+.ProseMirror {
+  outline: none;
+  caret-color: #00e5ff;
+}
+
+.ProseMirror h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #e8e8ea;
+}
+
+.ProseMirror h2 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin-top: 1.3rem;
+  margin-bottom: 0.4rem;
+  color: #e8e8ea;
+}
+
+.ProseMirror h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.3rem;
+  color: #d0d0d6;
+}
+
+.ProseMirror p {
+  margin: 0.4rem 0;
+  line-height: 1.7;
+  color: #c5c5ce;
+}
+
+.ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 1.4rem;
+  margin: 0.4rem 0;
+}
+
+.ProseMirror li {
+  margin: 0.15rem 0;
+  color: #c5c5ce;
+}
+
+.ProseMirror li::marker {
+  color: #00e5ff;
+}
+
+.ProseMirror blockquote {
+  border-left: 3px solid #b14dff;
+  padding-left: 1rem;
+  margin: 0.75rem 0;
+  color: #9999ad;
+  font-style: italic;
+}
+
+.ProseMirror code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  background: #16162a;
+  color: #00e5ff;
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.ProseMirror pre {
+  background: #0e0e1a;
+  border: 1px solid #1e1e30;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  margin: 0.6rem 0;
+  overflow-x: auto;
+}
+
+.ProseMirror pre code {
+  background: transparent;
+  padding: 0;
+  color: #c5c5ce;
+}
+
+.ProseMirror hr {
+  border: none;
+  border-top: 1px solid #1e1e30;
+  margin: 1.2rem 0;
+}
+
+.ProseMirror strong {
+  color: #e8e8ea;
+  font-weight: 600;
+}
+
+.ProseMirror em {
+  color: #bfbfd2;
+}
+
+.ProseMirror a {
+  color: #00e5ff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ProseMirror a:hover {
+  color: #b14dff;
+}
+
+/* Selection highlight */
+.ProseMirror ::selection {
+  background: rgba(0, 229, 255, 0.18);
+}
+
+/* ── Utility: animate-pulse (already in tailwind, just ensure keyframe) ── */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
