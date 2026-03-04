@@ -26,8 +26,8 @@ Every decision in `src/` follows these rules:
 | Principle | What it means in code |
 |---|---|
 | **Offline by default** | Zero network calls unless the user explicitly opts in. No telemetry, no cloud sync, no auto-update pings. |
-| **Privacy-first** | Notes live as `.md` files on the user's disk. The vector store and metadata index are local. Nothing leaves the machine. |
-| **Modular / swappable** | The AI layer is a plugin — the app works perfectly without it. Models, vector stores, retrieval strategies, and even the editor can be swapped without rewriting the shell. |
+| **Privacy-first** | Notes live as `.md` files on the user's disk. The graph + paginated chunk store and metadata index are local. Nothing leaves the machine. |
+| **Modular / swappable** | The AI layer is a plugin — the app works perfectly without it. Models, storage backends, retrieval strategies, and even the editor can be swapped without rewriting the shell. |
 | **No heavy server** | No always-on backend process. Local services spawn on demand and shut down when idle. This is a desktop app, not SaaS. |
 | **Scalable to large collections** | Design for 10k–100k notes from day one: incremental indexing, debounced watchers, background workers, lazy UI rendering. |
 
@@ -151,7 +151,7 @@ The RAG backend exists as a separate codebase today and will be integrated into 
 | Component | Technology | Why |
 |---|---|---|
 | **API** | FastAPI | Lightweight, async, auto-docs via OpenAPI. Will become an optional local process or be embedded as IPC-callable module. |
-| **Vector store** | ChromaDB (persistent) | Local-only, no server needed, supports metadata filtering. Pluggable — can swap for LanceDB, SQLite-VSS, etc. |
+| **Knowledge store** | Graph + paginated chunk storage (local) | Relationship-aware retrieval + efficient chunk loading at scale without a vector DB. |
 | **Embeddings** | Ollama + `qwen3-embedding:8b` | 4096-dim, high-quality, fully local. No API calls. |
 | **LLM** | Ollama + `qwen2.5:7b` | Domain classification + answer generation. Swappable. |
 | **NLP** | SpaCy `en_core_web_trf` | Entity extraction, relation triples, knowledge graph construction. |
@@ -163,14 +163,15 @@ The RAG backend exists as a separate codebase today and will be integrated into 
 app/
 ├── api/                # FastAPI route definitions + dependency injection
 ├── core/               # Config loader, environment variable management
-├── db/                 # ChromaDB client initialization + collection management
+├── db/                 # Graph + paginated chunk storage initialization
 ├── models/             # Pydantic request/response schemas
 ├── pipeline/           # The 6-stage RAG pipeline (see below)
 ├── utils/              # LLM wrappers, visualization helpers
 └── main.py             # FastAPI app entry point
 
 data/
-├── chroma_storage/     # Persistent vector DB on disk
+├── graph_storage/      # Persistent graph nodes/edges on disk
+├── chunk_pages/        # Paginated chunk records (content + metadata + embeddings)
 └── uploads/            # Ingested source documents
 ```
 
@@ -236,13 +237,13 @@ Chunk → SpaCy en_core_web_trf → Named entities + (subject, predicate, object
 ### Stage 5 — Embed + store
 
 ```text
-Chunk → Ollama qwen3-embedding:8b → 4096-dim vector → ChromaDB
+Chunk → Ollama qwen3-embedding:8b → embeddings + metadata → graph + paginated chunk store
 ```
 
 - Embeddings generated locally — no API calls.
-- Stored in ChromaDB with full metadata (domain, entities, source).
-- ChromaDB persistence directory lives alongside the notes folder.
-- **Hybrid retrieval design**: ChromaDB handles semantic search. A parallel keyword index (SQLite FTS5 / BM25) will power exact-match and term-frequency retrieval. Results merge via Reciprocal Rank Fusion (RRF).
+- Store entities/relations in the graph layer and link them to chunk IDs.
+- Store chunk content + metadata (and embeddings) in a paginated on-disk layout for fast batch retrieval.
+- **Hybrid retrieval design**: graph traversal + keyword index (SQLite FTS5 / BM25) + embedding similarity scoring over the relevant chunk pages. Results can merge via Reciprocal Rank Fusion (RRF).
 
 ### Stage 6 — Retrieve + generate + explain
 
@@ -251,7 +252,7 @@ Query → Decompose → Hybrid retrieve → Evidence graph → LLM generate → 
 ```
 
 1. **Query decomposition**: complex queries are broken into focused sub-queries.
-2. **Hybrid retrieval**: each sub-query hits both keyword and semantic indexes.
+2. **Hybrid retrieval**: each sub-query combines graph traversal, keyword search, and embedding similarity scoring.
 3. **Evidence graph**: retrieved chunks are organized into an evidence structure showing which chunks support which parts of the answer.
 4. **Answer generation**: local LLM produces an answer grounded in the evidence.
 5. **Trust scoring**: the answer is scored against its sources — how well-supported is each claim?
@@ -358,7 +359,9 @@ The renderer never knows or cares whether the backend is Python or Node.js.
 ### Phase 4 — Hybrid retrieval
 
 - [ ] Keyword index (SQLite FTS5 / BM25 scoring)
-- [ ] Semantic index (ChromaDB embeddings)
+- [ ] Graph traversal retrieval (entity/relation-aware)
+- [ ] Paginated chunk retrieval layer
+- [ ] Embedding similarity scoring over chunk pages
 - [ ] Reciprocal Rank Fusion merge strategy
 - [ ] Query decomposition for complex questions
 - [ ] Domain-aware routing (skip irrelevant domain chunks)
@@ -377,7 +380,7 @@ The renderer never knows or cares whether the backend is Python or Node.js.
 
 - [ ] Background indexing worker (no UI freezes)
 - [ ] Embedding batch processing with progress indicator
-- [ ] Incremental vector store updates (add/remove, no full rebuild)
+- [ ] Incremental graph/page updates (add/remove, no full rebuild)
 - [ ] LRU cache for recently accessed embeddings
 - [ ] Lazy sidebar rendering for 10k+ note trees
 - [ ] Stress test suite with synthetic note collections
