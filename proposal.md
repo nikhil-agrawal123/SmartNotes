@@ -12,7 +12,7 @@ If you would like to explore my background and previous work, you can find them 
 - **Website:** https://portfolio-eight-omega-35.vercel.app/
 - **GitHub:** https://github.com/nikhil-agrawal123
 
-## The Idea
+## The Idea: RAG based smart notes
 
 ### Frontend
 Let me start with a visual preview of the proposed design and how the Electron-based setup could look.
